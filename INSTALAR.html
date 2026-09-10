@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Instalar Corujinha</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:#1f2937;font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}.page{max-width:820px;margin:0 auto;padding:38px 18px 70px}.hero{padding:28px;border-radius:20px;background:#174ea6;color:#fff;box-shadow:0 14px 36px #174ea62b}.hero h1{margin:0 0 8px;font-size:30px}.hero p{margin:0;color:#dbeafe;line-height:1.5}.card{margin-top:18px;padding:22px;border:1px solid #dfe5ef;border-radius:16px;background:#fff;box-shadow:0 6px 20px #1725540b}.step{display:flex;gap:14px;margin:18px 0}.number{width:34px;height:34px;display:grid;place-items:center;flex:0 0 auto;border-radius:11px;background:#e8f0fe;color:#174ea6;font-weight:800}.step h2{margin:3px 0 8px;font-size:18px}.step p,.step li{line-height:1.55}.step ol{margin:8px 0;padding-left:22px}.button{display:inline-block;margin:6px 8px 6px 0;padding:11px 15px;border-radius:9px;background:#1a73e8;color:#fff;text-decoration:none;font-weight:700}.button.secondary{background:#eef4ff;color:#174ea6;border:1px solid #b8cef0}.code{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0;padding:11px 12px;border-radius:9px;background:#f3f5f9;font:14px ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}.code button{padding:7px 9px;border:1px solid #ccd4e0;border-radius:7px;background:#fff;cursor:pointer}.notice{margin-top:12px;padding:12px 14px;border-left:4px solid #f9ab00;border-radius:7px;background:#fef7e0;line-height:1.5}.ok{border-left-color:#34a853;background:#e6f4ea}.footer{margin-top:20px;text-align:center;color:#6b7280;font-size:13px}@media(max-width:600px){.hero{padding:22px}.hero h1{font-size:25px}.card{padding:17px}.step{align-items:flex-start}.code{align-items:stretch;flex-direction:column}.code button{align-self:flex-start}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <h1>🦉 Instalar Corujinha</h1>
+      <p>Guia rápido para instalar o Tampermonkey, liberar scripts de usuário e adicionar a Corujinha ao Google Meet.</p>
+    </header>
+
+    <section class="card">
+      <div class="step">
+        <div class="number">1</div>
+        <div>
+          <h2>Instale o Tampermonkey</h2>
+          <p>Use exclusivamente a página oficial da Chrome Web Store.</p>
+          <a class="button" href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" rel="noreferrer">Abrir Chrome Web Store</a>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="number">2</div>
+        <div>
+          <h2>Permita scripts de usuário</h2>
+          <ol>
+            <li>Copie o endereço abaixo e abra em uma nova guia.</li>
+            <li>Encontre o Tampermonkey e clique em <strong>Detalhes</strong>.</li>
+            <li>Ative <strong>Permitir scripts de usuário</strong>.</li>
+          </ol>
+          <div class="code"><span id="extensions-url">chrome://extensions</span><button type="button" data-copy="extensions-url">Copiar</button></div>
+          <div class="notice">Se a opção não aparecer, ative <strong>Modo do desenvolvedor</strong> no canto superior direito de <code>chrome://extensions</code>. Se estiver bloqueada pela empresa, solicite a liberação ao time responsável.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="number">3</div>
+        <div>
+          <h2>Adicione a Corujinha</h2>
+          <ol>
+            <li>Abra o painel do Tampermonkey.</li>
+            <li>Clique em <strong>Adicionar novo script</strong>.</li>
+            <li>Apague o exemplo, copie todo o arquivo da Corujinha e cole no editor.</li>
+            <li>Salve com <strong>Ctrl+S</strong> ou <strong>⌘S</strong>.</li>
+          </ol>
+          <a class="button" href="https://raw.githubusercontent.com/gunsouza/corujinha-google-meet/main/Corujinha-tampermonkey.user.js">Instalar Corujinha</a>
+          <a class="button secondary" href="Corujinha-tampermonkey.user.js">Abrir código local</a>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="number">4</div>
+        <div>
+          <h2>Teste</h2>
+          <p>Recarregue o Google Meet, entre em uma chamada de teste e clique na coruja. Abrir o painel não ativa o WR; a captura oficial do chat só começa após a confirmação.</p>
+          <div class="notice ok">Instalação concluída quando o painel mostrar <strong>Ativar modo WR</strong> e <strong>Histórico</strong>.</div>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer">Corujinha para Google Meet · versão 0.15.3</p>
+  </main>
+  <script>
+    document.querySelectorAll('[data-copy]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const value = document.getElementById(button.dataset.copy).textContent;
+        await navigator.clipboard.writeText(value);
+        const original = button.textContent;
+        button.textContent = 'Copiado';
+        setTimeout(() => { button.textContent = original; }, 1400);
+      });
+    });
+  </script>
+</body>
+</html>
