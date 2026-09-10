@@ -2,7 +2,7 @@
 
 A Corujinha é um userscript para Google Meet voltado a warrooms e incidentes. Ela registra localmente a ordem de entrada dos participantes e, quando o modo WR está ativo, captura as mensagens visíveis no chat para facilitar a atualização da bitácora e a consolidação do relatório final.
 
-> Versão atual documentada: **0.16.0**
+> Versão atual documentada: **0.16.1**
 > Implementação suportada atualmente: **Tampermonkey**
 
 > [**CLIQUE AQUI PARA INSTALAR OU ATUALIZAR A CORUJINHA**](https://raw.githubusercontent.com/gunsouza/corujinha-google-meet/main/Corujinha-tampermonkey.user.js)

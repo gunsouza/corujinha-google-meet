@@ -65,5 +65,5 @@ Antes de disponibilizar uma versão:
 - Confirme que não há dados pessoais, tokens ou URLs internas no código.
 - Confirme que `@version` e `VERSION` coincidem.
 - Use uma URL raw estável para `@updateURL` e `@downloadURL`.
-- Crie uma tag Git correspondente, por exemplo `v0.16.0`.
+- Crie uma tag Git correspondente, por exemplo `v0.16.1`.
 - Mantenha a branch de distribuição protegida contra pushes não revisados, quando possível.

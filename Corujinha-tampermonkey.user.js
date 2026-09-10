@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Corujinha para Google Meet
 // @namespace    https://meet.google.com/
-// @version      0.16.0
+// @version      0.16.1
 // @description  Registra participantes e chat do Google Meet para uso em bitácoras.
 // @author       Gustavo Souza
 // @homepageURL  https://github.com/gunsouza/corujinha-google-meet
@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '0.16.0';
+  const VERSION = '0.16.1';
   const STORE_PREFIX = 'corujinha:meeting:';
   const ACTIVE_PREFIX = 'corujinha:active:';
   const SESSION_GAP_MS = 12 * 60 * 60 * 1000;
@@ -203,6 +203,10 @@
     /^(?:controles do organizador|host controls|controles del organizador)$/i,
     /^(?:legendas|captions|subtítulos)(?:\s+.+)?$/i,
     /^(?:mensagens na chamada|in-call messages|messages in the call|mensajes de la llamada)$/i,
+    /^(?:(?:sua|your|tu|su)s+(?:apresentação|presentation|presentación))$/i,
+    /^(?:liberar sua apresentação da tela principal|unpin your presentation from the main screen|quitar (?:tu|su) presentación de la pantalla principal)$/i,
+    /^(?:(?:elas|eles) vão aparecer para todos|they(?:'|’)ll appear for everyone|aparecerán para todos)$/i,
+    /^(?:tela inteira|entire screen|your entire screen|pantalla completa|toda la pantalla)$/i,
   ];
 
   const CHAT_HEADER_PATTERN = /^(?:mensagens na chamada|in-call messages|messages in the call|mensajes de la llamada)$/i;
@@ -212,8 +216,15 @@
   const LEAVE_CONTROL_PATTERN = /(?:sair da chamada|encerrar chamada|leave call|end call|salir de la llamada|abandonar la llamada)/i;
   const MEETING_ENDED_PATTERN = /(?:você saiu da reunião|você saiu da chamada|you left the meeting|you left the call|saliste de la reunión|saliste de la llamada|a reunião terminou|the meeting has ended|la reunión terminó)/i;
 
+  function canonicalParticipantName(text) {
+    return (text || '')
+      .trim()
+      .replace(/\s*\((?:sua apresentação|your presentation|tu presentación|su presentación)\)\s*$/i, '')
+      .trim();
+  }
+
   function isName(text) {
-    const value = (text || '').trim();
+    const value = canonicalParticipantName(text);
     if (value.length < 2 || value.length > 80) return false;
     if (!/[a-zA-ZÀ-ÿ]/.test(value)) return false;
     if (IGNORE_WORDS.has(value.toLowerCase())) return false;
@@ -390,10 +401,12 @@
 
   function join(name, time = now()) {
     if (!trackingActive || !insideMeeting) return false;
-    const key = normalize(name);
+    const cleanName = canonicalParticipantName(name);
+    if (!isName(cleanName)) return false;
+    const key = normalize(cleanName);
     if (!key || inCall.has(key)) return false;
     inCall.add(key);
-    state.participants[key] ||= { name: name.trim(), sessions: [] };
+    state.participants[key] ||= { name: cleanName, sessions: [] };
     state.participants[key].sessions.push({ joinTime: time, leaveTime: null });
     state.lastCaptureAt = time;
     persist();
@@ -402,7 +415,7 @@
 
   function leave(name, time = now()) {
     if (!trackingActive) return false;
-    const key = normalize(name);
+    const key = normalize(canonicalParticipantName(name));
     if (!inCall.has(key)) return false;
     inCall.delete(key);
     const last = state.participants[key]?.sessions?.at(-1);
@@ -430,7 +443,7 @@
     if (!(element instanceof Element)) return null;
     const candidates = [];
     const add = (value, priority = 0) => {
-      const text = (value || '').trim();
+      const text = canonicalParticipantName(value);
       if (isName(text)) candidates.push({ text, priority });
     };
 
@@ -481,7 +494,8 @@
     const found = new Map();
     const peoplePanel = participantPanel();
     const add = (name) => {
-      if (isName(name)) found.set(normalize(name), name.trim());
+      const cleanName = canonicalParticipantName(name);
+      if (isName(cleanName)) found.set(normalize(cleanName), cleanName);
     };
 
     if (peoplePanel) {
@@ -511,14 +525,14 @@
   function detectSelfName() {
     for (const node of document.querySelectorAll('[data-self-name]')) {
       const name = (node.getAttribute('data-self-name') || '').trim();
-      if (isName(name)) return name;
+      if (isName(name)) return canonicalParticipantName(name);
     }
     for (const node of document.querySelectorAll('[aria-label]')) {
       const label = (node.getAttribute('aria-label') || '').trim();
       const match = label.match(/^(.+?)(?:,|\s*\()\s*(?:você|you|tú|tu)\)?(?:,.*)?$/i);
-      if (match && isName(match[1])) return match[1].trim();
+      if (match && isName(match[1])) return canonicalParticipantName(match[1]);
     }
-    return isName(state?.selfName) ? state.selfName.trim() : null;
+    return isName(state?.selfName) ? canonicalParticipantName(state.selfName) : null;
   }
 
   function resolveChatSender(sender) {
@@ -558,13 +572,43 @@
     return date.getTime();
   }
 
+  function cleanParticipantMap(participants = {}) {
+    const cleanedParticipants = {};
+    Object.values(participants).forEach((participant) => {
+      const name = canonicalParticipantName(participant?.name);
+      if (!isName(name)) return;
+      const key = normalize(name);
+      const target = cleanedParticipants[key] ||= { name, sessions: [] };
+      target.sessions.push(...(participant.sessions || []).filter((session) => Number(session?.joinTime)));
+    });
+    Object.values(cleanedParticipants).forEach((participant) => {
+      const merged = [];
+      participant.sessions
+        .sort((a, b) => a.joinTime - b.joinTime)
+        .forEach((session) => {
+          const current = { joinTime: session.joinTime, leaveTime: session.leaveTime || null };
+          const previous = merged.at(-1);
+          if (previous && (!previous.leaveTime || current.joinTime <= previous.leaveTime)) {
+            previous.joinTime = Math.min(previous.joinTime, current.joinTime);
+            previous.leaveTime = (!previous.leaveTime || !current.leaveTime)
+              ? null
+              : Math.max(previous.leaveTime, current.leaveTime);
+          } else {
+            merged.push(current);
+          }
+        });
+      participant.sessions = merged;
+    });
+    return cleanedParticipants;
+  }
+
   function sanitizeState() {
+    state.selfName = canonicalParticipantName(state.selfName);
     if (!isName(state.selfName)) state.selfName = detectSelfName();
-    Object.entries(state.participants || {}).forEach(([key, participant]) => {
-      if (!isName(participant?.name)) {
-        delete state.participants[key];
-        inCall.delete(key);
-      }
+    state.participants = cleanParticipantMap(state.participants);
+    inCall.clear();
+    Object.entries(state.participants).forEach(([key, participant]) => {
+      if (participant.sessions.at(-1) && !participant.sessions.at(-1).leaveTime) inCall.add(key);
     });
     const sanitizedChat = (state.chat || []).map((message) => ({
       ...message,
@@ -1202,7 +1246,11 @@
     const meetingKeys = keys.filter((key) => key.startsWith(STORE_PREFIX));
     const meetings = await Promise.all(meetingKeys.map(async (key) => {
       const meeting = await GM_getValue(key, null);
-      if (meeting) meeting._storageKey = key;
+      if (meeting) {
+        meeting.participants = cleanParticipantMap(meeting.participants);
+        await GM_setValue(key, meeting);
+        meeting._storageKey = key;
+      }
       return meeting;
     }));
     return meetings

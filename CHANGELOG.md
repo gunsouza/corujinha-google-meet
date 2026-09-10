@@ -2,6 +2,13 @@
 
 As mudanças relevantes da Corujinha são registradas neste arquivo.
 
+## 0.16.1
+
+- Ignora controles de apresentação como “Tela inteira” e “Liberar sua apresentação da tela principal”.
+- Remove textos auxiliares da apresentação identificados incorretamente como participantes.
+- Mescla o sufixo “(sua apresentação)” com o nome real do participante.
+- Limpa esses falsos participantes dos registros já salvos ao abrir novamente o Meet.
+
 ## 0.16.0
 
 - Substitui **Copiar chat** por **Abrir e copiar chat** no modo WR.

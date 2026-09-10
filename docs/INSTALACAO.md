@@ -57,7 +57,7 @@ Esse endereço é permanente e serve tanto para a primeira instalação quanto p
 No início do arquivo aparece a versão disponível:
 
 ```javascript
-// @version      0.16.0
+// @version      0.16.1
 ```
 
 Também é possível conferir a versão deixando o mouse sobre o ícone da Corujinha durante uma chamada.
