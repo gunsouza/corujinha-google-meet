@@ -42,38 +42,25 @@ Em navegador corporativo, essa opção pode estar bloqueada pelo administrador. 
 
 > **Atenção:** “Permitir acesso a URLs de arquivos” é outra opção. Ela só é necessária para métodos que abrem arquivos locais diretamente e não substitui “Permitir scripts de usuário”.
 
-## 3. Instalar a Corujinha
+## 3. Instalar a Corujinha com um clique
 
-### Forma recomendada enquanto não existe uma URL de instalação
+> [**INSTALAR OU ATUALIZAR A CORUJINHA**](https://raw.githubusercontent.com/gunsouza/corujinha-google-meet/main/Corujinha-tampermonkey.user.js)
 
-1. Clique no ícone do Tampermonkey.
-2. Abra o **Painel de controle**.
-3. Clique no botão **+** ou em **Adicionar novo script**.
-4. Apague todo o código de exemplo apresentado pelo editor.
-5. Abra o arquivo `Corujinha-tampermonkey.user.js` em um editor de texto.
-6. Copie todo o arquivo, desde `// ==UserScript==` até a última linha.
-7. Cole no editor do Tampermonkey.
-8. Salve com `Ctrl+S` no Windows ou `⌘S` no macOS.
-9. Abra a aba **Scripts instalados** e confirme que **Corujinha para Google Meet** está ativada.
-10. Recarregue completamente a guia do Google Meet.
+1. Abra o link acima no navegador em que o Tampermonkey está instalado.
+2. O Tampermonkey mostrará a tela de instalação da Corujinha.
+3. Clique em **Instalar** ou **Atualizar**.
+4. Confirme no painel do Tampermonkey que **Corujinha para Google Meet** está ativada.
+5. Recarregue completamente a guia do Google Meet.
 
-No início do arquivo deve aparecer a versão instalada:
+Esse endereço é permanente e serve tanto para a primeira instalação quanto para atualizações. Ele sempre aponta para a versão aprovada mais recente no branch `main` do repositório.
+
+No início do arquivo aparece a versão disponível:
 
 ```javascript
 // @version      0.15.3
 ```
 
 Também é possível conferir a versão deixando o mouse sobre o ícone da Corujinha durante uma chamada.
-
-### Instalação com um clique
-
-Abra o link abaixo no navegador. O Tampermonkey deverá mostrar uma tela com o botão **Instalar**:
-
-```text
-https://raw.githubusercontent.com/gunsouza/corujinha-google-meet/main/Corujinha-tampermonkey.user.js
-```
-
-Depois da instalação, mantenha o script ativado no painel do Tampermonkey.
 
 ## 4. Validar a instalação
 
@@ -87,7 +74,19 @@ Depois da instalação, mantenha o script ativado no painel do Tampermonkey.
 
 Se esses controles aparecerem, a instalação foi concluída.
 
-## Atualização manual
+## Atualização pelo mesmo link
+
+O link de instalação não muda entre versões:
+
+```text
+https://raw.githubusercontent.com/gunsouza/corujinha-google-meet/main/Corujinha-tampermonkey.user.js
+```
+
+Ao abri-lo novamente, o Tampermonkey compara o campo `@version` e oferece a atualização quando houver uma versão mais nova. Também é possível usar **Verificar atualizações dos scripts** no painel do Tampermonkey ou aguardar a verificação automática.
+
+Depois de atualizar, recarregue as guias do Google Meet que já estavam abertas.
+
+## Atualização manual alternativa
 
 1. Obtenha a versão mais recente do arquivo `.user.js`.
 2. Abra o painel do Tampermonkey.

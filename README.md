@@ -5,7 +5,9 @@ A Corujinha é um userscript para Google Meet voltado a warrooms e incidentes. E
 > Versão atual documentada: **0.15.3**
 > Implementação suportada atualmente: **Tampermonkey**
 
-[**Instalar ou atualizar a Corujinha**](https://raw.githubusercontent.com/gunsouza/corujinha-google-meet/main/Corujinha-tampermonkey.user.js)
+> [**CLIQUE AQUI PARA INSTALAR OU ATUALIZAR A CORUJINHA**](https://raw.githubusercontent.com/gunsouza/corujinha-google-meet/main/Corujinha-tampermonkey.user.js)
+>
+> Este é o link permanente de instalação e atualização.
 
 ## Principais recursos
 
@@ -47,6 +49,7 @@ Para uma orientação visual, abra [INSTALAR.html](INSTALAR.html) no navegador.
 
 - [Instalação e atualizações](docs/INSTALACAO.md)
 - [Guia de uso em warrooms](docs/USO.md)
+- [Documentação consolidada para o Confluence](docs/CONFLUENCE.md)
 - [Privacidade e armazenamento](PRIVACIDADE.md)
 - [Processo de atualização e publicação](CONTRIBUINDO.md)
 - [Histórico de versões](CHANGELOG.md)
