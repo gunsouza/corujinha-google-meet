@@ -2,7 +2,7 @@
 
 A Corujinha é um userscript para Google Meet voltado a warrooms e incidentes. Ela registra localmente a ordem de entrada dos participantes e, quando o modo WR está ativo, captura as mensagens visíveis no chat para facilitar a atualização da bitácora e a consolidação do relatório final.
 
-> Versão atual documentada: **0.15.3**
+> Versão atual documentada: **0.16.0**
 > Implementação suportada atualmente: **Tampermonkey**
 
 > [**CLIQUE AQUI PARA INSTALAR OU ATUALIZAR A CORUJINHA**](https://raw.githubusercontent.com/gunsouza/corujinha-google-meet/main/Corujinha-tampermonkey.user.js)
@@ -14,6 +14,7 @@ A Corujinha é um userscript para Google Meet voltado a warrooms e incidentes. E
 - Participantes em ordem de entrada, com nome e horário.
 - Formato de bitácora: `Nome da pessoa - HH:MM`.
 - Captura do chat somente após a ativação explícita do modo WR.
+- Ação **Abrir e copiar chat**, que abre o painel do Meet e recupera as mensagens disponíveis antes de copiar.
 - Pré-check antes de iniciar a warroom.
 - Campo opcional para o ID do incidente.
 - Painel compacto, minimizável e móvel.
@@ -58,7 +59,7 @@ Para uma orientação visual, abra [INSTALAR.html](INSTALAR.html) no navegador.
 
 - O Tampermonkey não consegue abrir uma nova página de relatório depois que a guia do Meet já foi fechada. Para gerar o relatório automaticamente, use o botão **Sair da chamada** do Meet.
 - Se a guia for fechada, os dados já capturados continuam armazenados. Reabra o mesmo link e acesse **Histórico**.
-- O chat do Google Meet precisa estar aberto para que suas mensagens estejam disponíveis no DOM e possam ser capturadas.
+- A captura automática ocorre enquanto o chat está aberto. Se ele ficou fechado, use **Abrir e copiar chat** durante a chamada para recuperar as mensagens que o Meet ainda disponibiliza.
 - Alterações do Google na interface do Meet podem exigir ajustes nos seletores de captura.
 
 ## Armazenamento e privacidade

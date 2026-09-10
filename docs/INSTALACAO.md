@@ -57,7 +57,7 @@ Esse endereço é permanente e serve tanto para a primeira instalação quanto p
 No início do arquivo aparece a versão disponível:
 
 ```javascript
-// @version      0.15.3
+// @version      0.16.0
 ```
 
 Também é possível conferir a versão deixando o mouse sobre o ícone da Corujinha durante uma chamada.
@@ -148,5 +148,6 @@ Atualizações automáticas podem falhar quando a URL exige login, cookies corpo
 ### O chat não foi capturado
 
 - Confirme que o modo WR estava ativo.
-- Mantenha o painel de mensagens do Meet aberto.
+- Durante a chamada, use **Abrir e copiar chat** para abrir o painel, varrer as mensagens disponíveis e copiá-las.
+- A Corujinha não consegue recuperar mensagens que o próprio Meet não disponibiliza ao usuário.
 - Mensagens que não estão mais disponíveis na interface podem não ser recuperadas.

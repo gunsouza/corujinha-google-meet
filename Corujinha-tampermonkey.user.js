@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Corujinha para Google Meet
 // @namespace    https://meet.google.com/
-// @version      0.15.3
+// @version      0.16.0
 // @description  Registra participantes e chat do Google Meet para uso em bitácoras.
 // @author       Gustavo Souza
 // @homepageURL  https://github.com/gunsouza/corujinha-google-meet
@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '0.15.3';
+  const VERSION = '0.16.0';
   const STORE_PREFIX = 'corujinha:meeting:';
   const ACTIVE_PREFIX = 'corujinha:active:';
   const SESSION_GAP_MS = 12 * 60 * 60 * 1000;
@@ -32,7 +32,7 @@
       participants: 'participantes', messages: 'mensagens', chat: 'Chat capturado',
       noMessages: 'Nenhuma mensagem capturada.', noParticipants: 'Nenhum participante detectado.',
       openPeople: 'Abra “Pessoas” para melhorar a identificação.',
-      bitacora: 'Copiar bitácora', copyChat: 'Copiar chat', ata: 'Copiar Ata', sheets: 'Copiar Sheets',
+      bitacora: 'Copiar bitácora', copyChat: 'Abrir e copiar chat', ata: 'Copiar Ata', sheets: 'Copiar Sheets',
       csv: 'Baixar CSV', history: 'Histórico', scan: 'Escanear agora',
       clear: 'Limpar dados desta Meet', finish: 'Finalizar registro', resume: 'Retomar registro',
       close: 'Fechar', minimize: 'Minimizar', currentMeeting: 'Reunião atual',
@@ -64,6 +64,7 @@
       waitingJoin: 'aguardando entrada na reunião',
       preflightTitle: 'Iniciar modo Warroom', preflightHelp: 'Confira os dados antes de iniciar a captura oficial.',
       meetingLabel: 'Reunião', chatDetected: 'Chat aberto', chatNotDetected: 'Chat fechado (opcional)',
+      openChatNow: 'Abrir chat agora', chatUnavailable: 'Não foi possível abrir o chat do Meet.',
       startWarroom: 'Iniciar modo WR',
       confirmWarroom: 'Ativar o modo Warroom para esta reunião?\n\nA Corujinha começará a capturar o chat e abrirá um relatório quando você sair da chamada.',
       warroomActive: 'modo WR ativo', reportTitle: 'Relatório da warroom',
@@ -75,7 +76,7 @@
       participants: 'participantes', messages: 'mensajes', chat: 'Chat capturado',
       noMessages: 'Ningún mensaje capturado.', noParticipants: 'Ningún participante detectado.',
       openPeople: 'Abre “Personas” para mejorar la identificación.',
-      bitacora: 'Copiar bitácora', copyChat: 'Copiar chat', ata: 'Copiar acta', sheets: 'Copiar a Sheets',
+      bitacora: 'Copiar bitácora', copyChat: 'Abrir y copiar chat', ata: 'Copiar acta', sheets: 'Copiar a Sheets',
       csv: 'Descargar CSV', history: 'Historial', scan: 'Escanear ahora',
       clear: 'Limpiar datos de este Meet', finish: 'Finalizar registro', resume: 'Reanudar registro',
       close: 'Cerrar', minimize: 'Minimizar', currentMeeting: 'Reunión actual',
@@ -107,6 +108,7 @@
       waitingJoin: 'esperando para entrar en la reunión',
       preflightTitle: 'Iniciar modo Warroom', preflightHelp: 'Comprueba los datos antes de iniciar la captura oficial.',
       meetingLabel: 'Reunión', chatDetected: 'Chat abierto', chatNotDetected: 'Chat cerrado (opcional)',
+      openChatNow: 'Abrir chat ahora', chatUnavailable: 'No se pudo abrir el chat de Meet.',
       startWarroom: 'Iniciar modo WR',
       confirmWarroom: '¿Activar el modo Warroom para esta reunión?\n\nCorujinha comenzará a capturar el chat y abrirá un informe cuando salgas de la llamada.',
       warroomActive: 'modo WR activo', reportTitle: 'Informe de warroom',
@@ -118,7 +120,7 @@
       participants: 'participants', messages: 'messages', chat: 'Captured chat',
       noMessages: 'No messages captured.', noParticipants: 'No participants detected.',
       openPeople: 'Open “People” to improve identification.',
-      bitacora: 'Copy incident log', copyChat: 'Copy chat', ata: 'Copy minutes', sheets: 'Copy to Sheets',
+      bitacora: 'Copy incident log', copyChat: 'Open and copy chat', ata: 'Copy minutes', sheets: 'Copy to Sheets',
       csv: 'Download CSV', history: 'History', scan: 'Scan now',
       clear: 'Clear this Meet data', finish: 'Finalize record', resume: 'Resume record',
       close: 'Close', minimize: 'Minimize', currentMeeting: 'Current meeting',
@@ -150,6 +152,7 @@
       waitingJoin: 'waiting to join the meeting',
       preflightTitle: 'Start Warroom mode', preflightHelp: 'Check the details before starting the official capture.',
       meetingLabel: 'Meeting', chatDetected: 'Chat open', chatNotDetected: 'Chat closed (optional)',
+      openChatNow: 'Open chat now', chatUnavailable: 'Could not open the Meet chat.',
       startWarroom: 'Start WR mode',
       confirmWarroom: 'Enable Warroom mode for this meeting?\n\nCorujinha will start capturing the chat and open a report when you leave the call.',
       warroomActive: 'WR mode active', reportTitle: 'Warroom report',
@@ -203,6 +206,7 @@
   ];
 
   const CHAT_HEADER_PATTERN = /^(?:mensagens na chamada|in-call messages|messages in the call|mensajes de la llamada)$/i;
+  const CHAT_BUTTON_PATTERN = /(?:mensagens na chamada|in-call messages|messages in the call|mensajes de la llamada|chat com todos|chat with everyone|chat con todos|conversar com todos|abrir (?:o )?chat|open (?:the )?chat|abrir (?:el )?chat)/i;
   const CHAT_CONTROL_PATTERN = /^(?:(?:keep(?:_on|_off)?)(?:\s+(?:fixar mensagem|desafixar mensagem|pin message|unpin message))?|(?:fixar mensagem|desafixar mensagem|pin message|unpin message|responder|reply|mais opções|more options|enviar|send))$/i;
   const CHAT_CONTROL_SUFFIX_PATTERN = /\s*(?:keep(?:_on|_off)?\s*)?(?:fixar mensagem|desafixar mensagem|pin message|unpin message|responder|reply|mais opções|more options|keep(?:_on|_off)?)\s*$/gi;
   const LEAVE_CONTROL_PATTERN = /(?:sair da chamada|encerrar chamada|leave call|end call|salir de la llamada|abandonar la llamada)/i;
@@ -612,15 +616,37 @@
     }) || null;
   }
 
-  function scanChat() {
-    // Privacidade: fora do modo WR, a Corujinha não inspeciona mensagens do Meet.
-    if (!trackingActive || !state?.warroomMode || !refreshMeetingPresence()) return;
-    lastChatScanAt = now();
-    const input = findChatInput();
-    updateLiveStatus(Boolean(input));
-    if (!input) return;
+  function findChatButton() {
+    return [...document.querySelectorAll('button, [role="button"]')].find((node) => {
+      if (node.closest('#corujinha-panel, #corujinha-launcher, #corujinha-preflight')) return false;
+      const label = [
+        node.getAttribute('aria-label'),
+        node.getAttribute('data-tooltip'),
+        node.getAttribute('title'),
+        node.textContent,
+      ].filter(Boolean).join(' ').trim();
+      if (!CHAT_BUTTON_PATTERN.test(label)) return false;
+      const rect = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      return rect.width > 12 && rect.height > 12 && style.display !== 'none' && style.visibility !== 'hidden';
+    }) || null;
+  }
 
-    let chatPanel = null;
+  async function ensureChatOpen(timeoutMs = 5000) {
+    if (findChatInput()) return true;
+    const button = findChatButton();
+    if (!button) return false;
+    button.click();
+    const deadline = now() + timeoutMs;
+    while (now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      if (findChatInput()) return true;
+    }
+    return false;
+  }
+
+  function findChatPanel(input = findChatInput()) {
+    if (!input) return null;
     let structuralCandidate = null;
     let ancestor = input.parentElement;
     for (let depth = 0; ancestor && depth < 12; depth++, ancestor = ancestor.parentElement) {
@@ -635,15 +661,28 @@
       ) {
         structuralCandidate = ancestor;
       }
+      if (CHAT_HEADER_PATTERN.test(text.split('\n')[0]?.trim() || '') && rect.width >= 240 && rect.height >= 250) {
+        return ancestor;
+      }
       if (
         /(?:Mensagens na chamada|In-call messages|Messages in the call|Mensajes de la llamada)/i.test(text) &&
         rect.width >= 240 && rect.height >= 250
       ) {
-        chatPanel = ancestor;
-        break;
+        return ancestor;
       }
     }
-    chatPanel ||= structuralCandidate;
+    return structuralCandidate;
+  }
+
+  function scanChat() {
+    // Privacidade: fora do modo WR, a Corujinha não inspeciona mensagens do Meet.
+    if (!trackingActive || !state?.warroomMode || !refreshMeetingPresence()) return;
+    lastChatScanAt = now();
+    const input = findChatInput();
+    updateLiveStatus(Boolean(input));
+    if (!input) return;
+
+    const chatPanel = findChatPanel(input);
     if (!chatPanel) return;
 
     const panelRect = chatPanel.getBoundingClientRect();
@@ -737,6 +776,50 @@
         occurrences.set(baseKey, occurrence + 1);
         addChat(sender, cleanText, timeFromLabel(label), occurrence);
       });
+  }
+
+  async function captureLoadedChatHistory() {
+    if (!state?.warroomMode || !trackingActive) return false;
+    if (!await ensureChatOpen()) return false;
+
+    const input = findChatInput();
+    const chatPanel = findChatPanel(input);
+    if (!chatPanel) return false;
+    const scrollable = [...chatPanel.querySelectorAll('*')]
+      .filter((node) => {
+        const style = getComputedStyle(node);
+        return node.clientHeight >= 100 && node.scrollHeight > node.clientHeight + 20 &&
+          /(?:auto|scroll)/.test(style.overflowY);
+      })
+      .sort((a, b) => (b.scrollHeight - b.clientHeight) - (a.scrollHeight - a.clientHeight))[0];
+
+    if (!scrollable) {
+      scanChat();
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      scanChat();
+      return true;
+    }
+
+    const step = Math.max(120, Math.floor(scrollable.clientHeight * 0.7));
+    let position = 0;
+    let iterations = 0;
+    while (iterations < 80) {
+      const maximum = Math.max(0, scrollable.scrollHeight - scrollable.clientHeight);
+      scrollable.scrollTop = Math.min(position, maximum);
+      scrollable.dispatchEvent(new Event('scroll', { bubbles: true }));
+      await new Promise((resolve) => setTimeout(resolve, 160));
+      scanChat();
+      if (position >= maximum) break;
+      position = Math.min(position + step, maximum);
+      iterations += 1;
+    }
+    scrollable.scrollTop = scrollable.scrollHeight;
+    scrollable.dispatchEvent(new Event('scroll', { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 220));
+    scanChat();
+    sanitizeState();
+    await persist();
+    return true;
   }
 
   function scheduleChatScan() {
@@ -977,7 +1060,7 @@
       #corujinha-review{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:#111827b3;font:13px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif}#corujinha-review *{box-sizing:border-box}.cj-review-dialog{width:min(760px,96vw);max-height:88vh;display:flex;flex-direction:column;background:#fff;color:#202124;border-radius:16px;box-shadow:0 22px 70px #0007;overflow:hidden}.cj-review-head{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 18px;border-bottom:1px solid #e7ebf2}.cj-review-head strong{display:block;font-size:17px;color:#174ea6}.cj-review-help{margin-top:4px;color:#7b8494;font-size:11px}.cj-review-close{width:30px;height:30px;background:#fff;border:1px solid #d7dce5;border-radius:8px;cursor:pointer}.cj-review-body{padding:14px 18px;overflow:auto;background:#f8fafe}.cj-review-section{margin-bottom:16px}.cj-review-section h3{margin:0 0 8px;font-size:12px;color:#344054}.cj-review-section>input{width:100%;padding:8px 9px;border:1px solid #d7dce5;border-radius:8px;background:#fff;color:#263142;font:12px inherit}.cj-review-row{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;margin-bottom:7px}.cj-review-row.chat{grid-template-columns:120px 1fr auto}.cj-review-row input,.cj-review-row textarea{width:100%;padding:8px 9px;border:1px solid #d7dce5;border-radius:8px;background:#fff;color:#263142;font:12px inherit;resize:vertical}.cj-review-row textarea{min-height:38px}.cj-review-index{color:#7b8494;text-align:center;font-size:11px}.cj-review-remove{padding:7px 9px;border:1px solid #f1d0cc;border-radius:7px;background:#fff8f7;color:#c5221f;cursor:pointer;font-size:11px}.cj-review-row.removed{display:none}.cj-review-footer{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid #e7ebf2}.cj-review-footer button{padding:9px 14px;border:1px solid #d7dce5;border-radius:8px;background:#fff;cursor:pointer;font-weight:650}.cj-review-footer .save{background:#1a73e8;color:#fff;border-color:#1a73e8}
       #corujinha-panel{width:310px;min-width:260px;min-height:0;max-height:none;resize:none;border-radius:13px}.cj-head{padding:10px 11px}.cj-brand{gap:8px}.cj-brand-icon{width:31px;height:31px;border-radius:9px;font-size:17px}.cj-title{font-size:14px}.cj-muted{max-width:185px;font-size:10px}.cj-capture-state{margin-top:3px;padding:2px 6px;font-size:9px}.cj-compact-summary{padding:9px 12px;text-align:center;background:#f8fafe;border-bottom:1px solid #e7ebf2;color:#667085;font-size:11px}.cj-compact-summary b{color:#263142}.cj-actions{display:flex;flex-direction:column;padding:10px 12px 12px;gap:7px}.cj-actions button,.cj-actions .primary{width:100%;min-height:36px;font-size:12px}.cj-actions button:disabled{opacity:.62;cursor:wait;transform:none}.cj-actions .copy-chat{background:#fff;color:#174ea6;border-color:#b8cef0}.cj-actions .wr-start{background:#188038;color:#fff;border-color:#188038}.cj-actions .history-link{background:transparent;border-color:transparent;color:#174ea6;min-height:30px;font-size:11px}.cj-actions .danger{background:transparent;border-color:transparent;color:#b42318;font-size:11px;min-height:30px}.cj-actions .danger:hover{background:#fff1f0;border-color:#f1d0cc}
       #corujinha-launcher.wr-active::after{content:'WR';position:absolute;right:-7px;top:-7px;padding:2px 4px;border-radius:6px;background:#7c3aed;color:#fff;border:2px solid #fff;font-size:8px;font-weight:800;letter-spacing:.03em}.cj-warroom-overlay{position:fixed;inset:0;z-index:2147483647;padding:22px;background:#f4f6fa;color:#1f2937;overflow:auto;font:14px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif}.cj-warroom-overlay .cj-report-shell{max-width:900px;margin:0 auto}.cj-report-close{position:fixed;right:20px;top:18px;width:34px;height:34px;border:1px solid #d7dce5;border-radius:9px;background:#fff;cursor:pointer;font-size:18px}
-      #corujinha-preflight{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;background:#11182799;font:13px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif}#corujinha-preflight *{box-sizing:border-box}.cj-preflight-card{width:min(390px,96vw);overflow:hidden;border:1px solid #dfe3eb;border-radius:15px;background:#fff;color:#263142;box-shadow:0 22px 65px #0007}.cj-preflight-head{padding:17px 18px 13px;border-bottom:1px solid #edf0f5}.cj-preflight-head strong{display:block;color:#174ea6;font-size:17px}.cj-preflight-help{margin-top:5px;color:#7b8494;font-size:11px}.cj-preflight-body{padding:14px 18px}.cj-preflight-row{display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid #f0f2f6}.cj-preflight-row span{color:#7b8494}.cj-preflight-row b{text-align:right}.cj-preflight-field{display:block;margin-top:14px;color:#667085;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}.cj-preflight-field input{width:100%;height:38px;margin-top:6px;padding:8px 10px;border:1px solid #d7dce5;border-radius:8px;background:#fafbfe;color:#263142;font:13px inherit;outline:none}.cj-preflight-field input:focus{border-color:#1a73e8;box-shadow:0 0 0 3px #e8f0fe;background:#fff}.cj-preflight-actions{display:flex;gap:8px;padding:12px 18px 16px}.cj-preflight-actions button{flex:1;min-height:38px;border:1px solid #d7dce5;border-radius:9px;background:#fff;color:#344054;cursor:pointer;font-weight:700}.cj-preflight-actions .start{background:#188038;border-color:#188038;color:#fff}
+      #corujinha-preflight{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;background:#11182799;font:13px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif}#corujinha-preflight *{box-sizing:border-box}.cj-preflight-card{width:min(390px,96vw);overflow:hidden;border:1px solid #dfe3eb;border-radius:15px;background:#fff;color:#263142;box-shadow:0 22px 65px #0007}.cj-preflight-head{padding:17px 18px 13px;border-bottom:1px solid #edf0f5}.cj-preflight-head strong{display:block;color:#174ea6;font-size:17px}.cj-preflight-help{margin-top:5px;color:#7b8494;font-size:11px}.cj-preflight-body{padding:14px 18px}.cj-preflight-row{display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid #f0f2f6}.cj-preflight-row span{color:#7b8494}.cj-preflight-row b{text-align:right}.cj-preflight-open-chat{width:100%;min-height:34px;margin-top:10px;border:1px solid #b8cef0;border-radius:8px;background:#eef4ff;color:#174ea6;cursor:pointer;font-weight:700}.cj-preflight-open-chat:disabled{opacity:.65;cursor:wait}.cj-preflight-field{display:block;margin-top:14px;color:#667085;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}.cj-preflight-field input{width:100%;height:38px;margin-top:6px;padding:8px 10px;border:1px solid #d7dce5;border-radius:8px;background:#fafbfe;color:#263142;font:13px inherit;outline:none}.cj-preflight-field input:focus{border-color:#1a73e8;box-shadow:0 0 0 3px #e8f0fe;background:#fff}.cj-preflight-actions{display:flex;gap:8px;padding:12px 18px 16px}.cj-preflight-actions button{flex:1;min-height:38px;border:1px solid #d7dce5;border-radius:9px;background:#fff;color:#344054;cursor:pointer;font-weight:700}.cj-preflight-actions .start{background:#188038;border-color:#188038;color:#fff}
       #corujinha-toast{position:fixed;right:24px;bottom:26px;z-index:2147483647;background:#1f2937;color:#fff;padding:10px 14px;border-radius:9px;box-shadow:0 8px 24px #0005;font:12px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}#corujinha-toast.show{opacity:1;transform:none}
     `;
     document.head.appendChild(style);
@@ -1240,6 +1323,7 @@
       element('strong', { text: UI.preflightTitle }),
       element('div', { className: 'cj-preflight-help', text: UI.preflightHelp }),
     ]));
+    const chatStatus = element('b', { text: chatOpen ? UI.chatDetected : UI.chatNotDetected });
     const body = element('div', { className: 'cj-preflight-body' }, [
       element('div', { className: 'cj-preflight-row' }, [
         element('span', { text: UI.meetingLabel }),
@@ -1251,9 +1335,21 @@
       ]),
       element('div', { className: 'cj-preflight-row' }, [
         element('span', { text: UI.chat }),
-        element('b', { text: chatOpen ? UI.chatDetected : UI.chatNotDetected }),
+        chatStatus,
       ]),
     ]);
+    if (!chatOpen) {
+      const openChat = element('button', { className: 'cj-preflight-open-chat', text: UI.openChatNow });
+      openChat.onclick = async () => {
+        openChat.disabled = true;
+        const opened = await ensureChatOpen();
+        openChat.disabled = false;
+        if (!opened) return showToast(UI.chatUnavailable);
+        chatStatus.textContent = UI.chatDetected;
+        openChat.remove();
+      };
+      body.append(openChat);
+    }
     const incidentInput = element('input', { ariaLabel: UI.incident });
     incidentInput.placeholder = UI.incidentPlaceholder;
     incidentInput.value = state.incidentId || '';
@@ -1629,6 +1725,8 @@
       await copyText(buildBitacora(), UI.copiedBitacora, `${participants.length} ${UI.participantsCopied}.`);
     });
     panel.querySelector('#cj-copy-chat').onclick = (event) => runButtonTask(event.currentTarget, async () => {
+      const chatAvailable = await captureLoadedChatHistory();
+      if (!chatAvailable) return showToast(UI.chatUnavailable);
       await refreshBeforeCopy();
       const count = state.chat?.length || 0;
       const unidentified = (state.chat || []).filter((message) => /^(?:participante|participant)$/i.test(message.sender || '')).length;

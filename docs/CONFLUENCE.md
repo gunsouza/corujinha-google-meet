@@ -95,9 +95,10 @@ Depois da confirmação, aparece a etiqueta `WR` e o ícone assume o estado ativ
 ## Chat
 
 - O chat somente é lido e armazenado depois da confirmação do modo WR.
-- É necessário manter o painel de mensagens do Google Meet aberto para que as mensagens estejam disponíveis à Corujinha.
+- A captura automática acontece enquanto o painel de mensagens do Meet está aberto.
 - Fechar o painel da Corujinha não interrompe a captura.
-- O botão **Copiar chat** copia horário, autor e conteúdo das mensagens capturadas.
+- O botão **Abrir e copiar chat** abre o painel do Meet, percorre o histórico disponível e copia horário, autor e conteúdo.
+- O pré-check oferece **Abrir chat agora** para facilitar a preparação da warroom.
 - Mensagens anteriores que já não estejam disponíveis na interface do Meet podem não ser recuperadas.
 
 ## Encerramento e relatório
@@ -132,7 +133,7 @@ Os registros ficam armazenados localmente por até 30 dias. **Limpar dados desta
 
 ## Limitações conhecidas
 
-- O chat precisa estar aberto para ser capturado.
+- Para captura automática em tempo real, o chat precisa estar aberto. A ação **Abrir e copiar chat** recupera posteriormente o conteúdo que o Meet ainda disponibilizar.
 - Fechar diretamente a guia impede a abertura automática do relatório.
 - Mudanças na interface do Google Meet podem exigir uma atualização da Corujinha.
 - A Corujinha registra apenas informações disponíveis na página do Meet; ela não acessa áudio ou transcrição.
@@ -150,7 +151,8 @@ Os registros ficam armazenados localmente por até 30 dias. **Limpar dados desta
 ### O chat não foi capturado
 
 - Confirme que o modo WR foi ativado e confirmado.
-- Mantenha o painel de mensagens do Meet aberto.
+- Clique em **Abrir e copiar chat** antes de sair da chamada.
+- A Corujinha não consegue recuperar conteúdo que não esteja mais disponível no Meet.
 - Recarregue a página se o Meet tiver sido aberto antes da atualização do script.
 
 ### O relatório não abriu

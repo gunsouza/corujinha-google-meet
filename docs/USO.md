@@ -38,9 +38,14 @@ Nome da pessoa - 14:03
 Outra pessoa - 14:07
 ```
 
-### Copiar chat
+### Abrir e copiar chat
 
-O botão **Copiar chat** gera:
+O botão **Abrir e copiar chat**:
+
+1. Abre automaticamente o painel de mensagens do Meet, caso esteja fechado.
+2. Aguarda o histórico disponível carregar.
+3. Percorre a conversa para capturar as mensagens disponíveis.
+4. Copia o conteúdo no formato:
 
 ```text
 14:08 Nome da pessoa: mensagem enviada
@@ -48,6 +53,8 @@ O botão **Copiar chat** gera:
 ```
 
 O chat é complementar. A captura de participantes continua mesmo quando o painel de mensagens estiver fechado.
+
+Se o chat ficou fechado durante parte da reunião, use essa ação antes de sair. Ela recupera o que ainda estiver disponível na interface do Meet, mas não consegue acessar mensagens anteriores à sua entrada ou removidas pelo próprio Google.
 
 ## Encerramento
 

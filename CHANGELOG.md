@@ -2,6 +2,14 @@
 
 As mudanças relevantes da Corujinha são registradas neste arquivo.
 
+## 0.16.0
+
+- Substitui **Copiar chat** por **Abrir e copiar chat** no modo WR.
+- Abre automaticamente o painel de mensagens quando necessário.
+- Percorre o histórico disponível no painel antes de copiar.
+- Adiciona **Abrir chat agora** ao pré-check da warroom.
+- Mantém a captura e a leitura do chat restritas ao modo WR.
+
 ## 0.15.3
 
 - Adiciona instalação por URL pública do userscript.

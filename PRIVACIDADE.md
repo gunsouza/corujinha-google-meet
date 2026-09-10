@@ -25,6 +25,8 @@ O chat só é examinado quando:
 
 Fora do modo WR, a Corujinha não inspeciona nem armazena mensagens do chat.
 
+No modo WR, a ação **Abrir e copiar chat** pode abrir o painel de mensagens por solicitação do usuário para capturar o histórico que o próprio Meet disponibilizar naquele momento.
+
 ## Onde os dados ficam
 
 Os registros são mantidos no armazenamento local disponibilizado pelo Tampermonkey (`GM_setValue`). Eles ficam associados ao perfil do navegador em que o script foi instalado.
