@@ -2,6 +2,13 @@
 
 As mudanças relevantes da Corujinha são registradas neste arquivo.
 
+## 0.16.2
+
+- Corrige mensagens próprias atribuídas ao último participante exibido no chat.
+- Usa o nome do próprio usuário para mensagens alinhadas como enviadas por ele.
+- Corrige a atribuição antiga ao varrer novamente o chat ainda disponível.
+- Ignora “Mostrar minha tela mesmo assim” e equivalentes em espanhol e inglês.
+
 ## 0.16.1
 
 - Ignora controles de apresentação como “Tela inteira” e “Liberar sua apresentação da tela principal”.

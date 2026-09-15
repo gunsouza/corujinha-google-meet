@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Corujinha para Google Meet
 // @namespace    https://meet.google.com/
-// @version      0.16.1
+// @version      0.16.2
 // @description  Registra participantes e chat do Google Meet para uso em bitácoras.
 // @author       Gustavo Souza
 // @homepageURL  https://github.com/gunsouza/corujinha-google-meet
@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '0.16.1';
+  const VERSION = '0.16.2';
   const STORE_PREFIX = 'corujinha:meeting:';
   const ACTIVE_PREFIX = 'corujinha:active:';
   const SESSION_GAP_MS = 12 * 60 * 60 * 1000;
@@ -203,10 +203,11 @@
     /^(?:controles do organizador|host controls|controles del organizador)$/i,
     /^(?:legendas|captions|subtítulos)(?:\s+.+)?$/i,
     /^(?:mensagens na chamada|in-call messages|messages in the call|mensajes de la llamada)$/i,
-    /^(?:(?:sua|your|tu|su)s+(?:apresentação|presentation|presentación))$/i,
+    /^(?:(?:sua|your|tu|su)\s+(?:apresentação|presentation|presentación))$/i,
     /^(?:liberar sua apresentação da tela principal|unpin your presentation from the main screen|quitar (?:tu|su) presentación de la pantalla principal)$/i,
     /^(?:(?:elas|eles) vão aparecer para todos|they(?:'|’)ll appear for everyone|aparecerán para todos)$/i,
     /^(?:tela inteira|entire screen|your entire screen|pantalla completa|toda la pantalla)$/i,
+    /^(?:mostrar minha tela mesmo assim|share my screen anyway|present anyway|mostrar mi pantalla de todos modos|presentar de todos modos)$/i,
   ];
 
   const CHAT_HEADER_PATTERN = /^(?:mensagens na chamada|in-call messages|messages in the call|mensajes de la llamada)$/i;
@@ -546,7 +547,7 @@
     return `${normalize(message.sender)}|${normalizedText}|${Math.floor((message.time || 0) / 60000)}|${message.occurrence || 0}`;
   }
 
-  function addChat(sender, text, time = now(), occurrence = 0) {
+  function addChat(sender, text, time = now(), occurrence = 0, own = false, misattributedSender = '') {
     if (!trackingActive || !insideMeeting || !state?.warroomMode) return;
     const cleanSender = resolveChatSender(sender);
     const cleanText = (text || '')
@@ -554,7 +555,26 @@
       .trim();
     if (!cleanSender || CHAT_CONTROL_PATTERN.test(cleanSender) || !cleanText || cleanText.length > 5000) return;
     if (/^(?:enviar uma mensagem|send a message|chat|mensagens?|messages?)$/i.test(cleanText)) return;
-    const message = { sender: cleanSender, text: cleanText, time, occurrence };
+    const message = { sender: cleanSender, text: cleanText, time, occurrence, own: Boolean(own) };
+    if (own && misattributedSender && normalize(misattributedSender) !== normalize(cleanSender)) {
+      const wrongMessage = state.chat.find((candidate) => {
+        return !candidate.own &&
+          normalize(candidate.sender) === normalize(misattributedSender) &&
+          (candidate.text || '').trim().replace(/\s+/g, ' ').toLowerCase() === cleanText.replace(/\s+/g, ' ').toLowerCase() &&
+          Math.floor((candidate.time || 0) / 60000) === Math.floor(time / 60000) &&
+          (candidate.occurrence || 0) === occurrence;
+      });
+      if (wrongMessage) {
+        seenChat.delete(chatKey(wrongMessage));
+        wrongMessage.sender = cleanSender;
+        wrongMessage.own = true;
+        seenChat.add(chatKey(wrongMessage));
+        state.lastCaptureAt = time;
+        state.lastChatCaptureAt = time;
+        persist();
+        return;
+      }
+    }
     const key = chatKey(message);
     if (seenChat.has(key)) return;
     seenChat.add(key);
@@ -613,7 +633,10 @@
     const sanitizedChat = (state.chat || []).map((message) => ({
       ...message,
       occurrence: Number(message?.occurrence) || 0,
-      sender: CHAT_HEADER_PATTERN.test((message?.sender || '').trim())
+      own: Boolean(message?.own),
+      sender: message?.own && isName(state.selfName)
+        ? canonicalParticipantName(state.selfName)
+        : CHAT_HEADER_PATTERN.test((message?.sender || '').trim())
         ? 'Participante'
         : resolveChatSender(message?.sender),
       text: (message?.text || '')
@@ -797,7 +820,7 @@
           .filter((item) => {
             const verticalGap = bubble.rect.top - item.rect.bottom;
             const horizontalGap = Math.abs(item.rect.left - bubble.rect.left);
-            return verticalGap >= -4 && verticalGap <= 700 && horizontalGap <= 180;
+            return verticalGap >= -4 && verticalGap <= 140 && horizontalGap <= 180;
           })
           .sort((a, b) => b.rect.bottom - a.rect.bottom)[0];
         const label = nearbySender?.time || [...timeLabels]
@@ -805,11 +828,12 @@
           .sort((a, b) => b.rect.top - a.rect.top)[0]?.text;
         const onRight = bubble.rect.left + bubble.rect.width / 2 > panelRect.left + panelRect.width / 2;
         const side = onRight ? 'right' : 'left';
+        const selfSender = detectSelfName() || state.selfName || 'Você';
         const aria = bubble.node.getAttribute('aria-label') || '';
         const senderMatch = aria.match(/(?:de|from)\s+(.+?)(?::|,|$)/i);
-        const explicitSender = senderMatch?.[1]?.trim() || nearbySender?.name;
+        const explicitSender = onRight ? selfSender : (senderMatch?.[1]?.trim() || nearbySender?.name);
         if (explicitSender && !CHAT_HEADER_PATTERN.test(explicitSender) && !controls.test(explicitSender)) lastSenderBySide[side] = explicitSender;
-        const sender = lastSenderBySide[side] || (onRight ? (detectSelfName() || 'Você') : 'Participante');
+        const sender = onRight ? selfSender : (lastSenderBySide.left || 'Participante');
         const cleanText = bubble.text
           .split('\n')
           .map((line) => line.trim())
@@ -818,7 +842,7 @@
         const baseKey = `${normalize(sender)}|${cleanText.replace(/\s+/g, ' ').toLowerCase()}|${label || ''}`;
         const occurrence = occurrences.get(baseKey) || 0;
         occurrences.set(baseKey, occurrence + 1);
-        addChat(sender, cleanText, timeFromLabel(label), occurrence);
+        addChat(sender, cleanText, timeFromLabel(label), occurrence, onRight, nearbySender?.name || '');
       });
   }
 
