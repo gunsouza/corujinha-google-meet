@@ -2,6 +2,13 @@
 
 As mudanças relevantes da Corujinha são registradas neste arquivo.
 
+## 0.16.3
+
+- Impede que diálogos, menus e opções do Google Meet sejam tratados como participantes.
+- Remove a leitura do atributo genérico de layout que misturava controles de apresentação com pessoas.
+- Ignora comandos de compartilhar, apresentar, substituir, fixar e parar apresentação em português, inglês e espanhol.
+- Ignora opções como guia, janela, tela e áudio usadas no fluxo de compartilhamento.
+
 ## 0.16.2
 
 - Corrige mensagens próprias atribuídas ao último participante exibido no chat.

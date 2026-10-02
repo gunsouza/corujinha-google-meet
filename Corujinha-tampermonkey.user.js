@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Corujinha para Google Meet
 // @namespace    https://meet.google.com/
-// @version      0.16.2
+// @version      0.16.3
 // @description  Registra participantes e chat do Google Meet para uso em bitácoras.
 // @author       Gustavo Souza
 // @homepageURL  https://github.com/gunsouza/corujinha-google-meet
@@ -20,7 +20,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '0.16.2';
+  const VERSION = '0.16.3';
   const STORE_PREFIX = 'corujinha:meeting:';
   const ACTIVE_PREFIX = 'corujinha:active:';
   const SESSION_GAP_MS = 12 * 60 * 60 * 1000;
@@ -208,7 +208,20 @@
     /^(?:(?:elas|eles) vão aparecer para todos|they(?:'|’)ll appear for everyone|aparecerán para todos)$/i,
     /^(?:tela inteira|entire screen|your entire screen|pantalla completa|toda la pantalla)$/i,
     /^(?:mostrar minha tela mesmo assim|share my screen anyway|present anyway|mostrar mi pantalla de todos modos|presentar de todos modos)$/i,
+    /^(?:(?:(?:você\s+)?(?:deseja|quer)|continuar|permitir|selecione|escolha|clique para)\s+)?(?:compartilhar|apresentar|mostrar|substituir|parar|liberar|fixar|desafixar)(?:\s+.+)?[?.!]?$/i,
+    /^(?:(?:do you want to|would you like to|continue to|allow|select|choose|click to)\s+)?(?:share|present|show|replace|stop|unpin|pin)(?:\s+.+)?[?.!]?$/i,
+    /^¿?(?:(?:(?:tú\s+)?(?:deseas|quieres)|desea|continuar|permitir|selecciona|elige|haz clic para)\s+)?(?:compartir|presentar|mostrar|reemplazar|detener|liberar|fijar|desfijar)(?:\s+.+)?[?.!]?$/i,
+    /^(?:(?:uma|a|sua|minha)\s+)?(?:guia(?: do chrome)?|janela|tela|tela inteira|áudio da guia|áudio do sistema)$/i,
+    /^(?:(?:a|your|my)\s+)?(?:chrome tab|tab|window|screen|entire screen|tab audio|system audio)$/i,
+    /^(?:(?:una|la|tu|mi)\s+)?(?:pestaña(?: de chrome)?|ventana|pantalla|pantalla completa|audio de la pestaña|audio del sistema)$/i,
+    /^(?:você está apresentando|you are presenting|estás presentando)(?:\s+.+)?$/i,
+    /^(?:conteúdo compartilhado|shared content|contenido compartido)$/i,
   ];
+
+  const NON_PARTICIPANT_CONTAINER_SELECTOR = [
+    '[role="dialog"]', '[aria-modal="true"]', '[role="menu"]', '[role="menuitem"]',
+    '[role="listbox"]', '[role="option"]',
+  ].join(', ');
 
   const CHAT_HEADER_PATTERN = /^(?:mensagens na chamada|in-call messages|messages in the call|mensajes de la llamada)$/i;
   const CHAT_BUTTON_PATTERN = /(?:mensagens na chamada|in-call messages|messages in the call|mensajes de la llamada|chat com todos|chat with everyone|chat con todos|conversar com todos|abrir (?:o )?chat|open (?:the )?chat|abrir (?:el )?chat)/i;
@@ -442,6 +455,7 @@
 
   function extractName(element) {
     if (!(element instanceof Element)) return null;
+    if (element.closest(NON_PARTICIPANT_CONTAINER_SELECTOR)) return null;
     const candidates = [];
     const add = (value, priority = 0) => {
       const text = canonicalParticipantName(value);
@@ -504,8 +518,11 @@
     }
 
     document.querySelectorAll(
-      '[data-participant-id], [data-self-name], [data-requested-participant-id], [data-allocation-index]'
-    ).forEach((item) => add(extractName(item)));
+      '[data-participant-id], [data-self-name], [data-requested-participant-id]'
+    ).forEach((item) => {
+      if (item.closest(NON_PARTICIPANT_CONTAINER_SELECTOR)) return;
+      add(extractName(item));
+    });
 
     const detectedSelfName = detectSelfName();
     if (detectedSelfName) state.selfName = detectedSelfName;
